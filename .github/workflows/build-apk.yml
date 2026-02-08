@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK with Buildozer
 
 on:
   push:
@@ -12,11 +12,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: List files
-      run: ls -la
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -27,33 +22,57 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          openjdk-17-jdk-headless \
-          python3-pip \
+          build-essential \
           git \
-          zip \
-          unzip \
-          autoconf \
+          python3-dev \
+          python3-pip \
+          python3-venv \
+          openjdk-17-jdk \
+          android-sdk \
+          android-sdk-build-tools \
+          android-sdk-platform-tools \
+          android-sdk-tools \
+          libncurses5 \
+          libffi-dev \
+          libssl-dev \
+          libjpeg-dev \
+          zlib1g-dev \
+          libpng-dev \
+          libfreetype6-dev \
           libtool \
           pkg-config \
-          zlib1g-dev \
-          libncurses-dev \
           cmake \
-          libffi-dev \
-          libssl-dev
+          autoconf \
+          automake
     
-    - name: Install Python dependencies
+    - name: Set up Android SDK
       run: |
-        pip install --upgrade pip
-        pip install buildozer cython==0.29.33 setuptools
+        mkdir -p ~/Android/Sdk
+        export ANDROID_SDK_ROOT=~/Android/Sdk
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
+        
+        # Accept licenses
+        yes | sdkmanager --licenses || true
+        
+        # Install NDK
+        sdkmanager "ndk;25.1.8937393" || true
     
-    - name: Build APK
+    - name: Create virtual environment and install Buildozer
       run: |
-        buildozer android debug || true
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip setuptools wheel
+        pip install buildozer cython
     
-    - name: List build output
-      run: ls -la bin/ || echo "No bin directory"
+    - name: Build APK with Buildozer
+      run: |
+        source venv/bin/activate
+        export ANDROID_SDK_ROOT=~/Android/Sdk
+        export ANDROID_HOME=~/Android/Sdk
+        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+        buildozer android debug
     
-    - name: Upload APK if exists
+    - name: Upload APK
       if: always()
       uses: actions/upload-artifact@v4
       with:
