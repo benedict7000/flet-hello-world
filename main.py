@@ -1,13 +1,153 @@
 import flet as ft
+from datetime import datetime
+import json
+import os
+
+class BarcodeScanner:
+    def __init__(self, page: ft.Page):
+        self.page = page
+        self.scans = []
+        self.data_file = "scans.json"
+        self.load_scans()
+        self.setup_ui()
+    
+    def load_scans(self):
+        """Load previous scans from file"""
+        if os.path.exists(self.data_file):
+            try:
+                with open(self.data_file, 'r') as f:
+                    self.scans = json.load(f)
+            except:
+                self.scans = []
+    
+    def save_scans(self):
+        """Save scans to file"""
+        with open(self.data_file, 'w') as f:
+            json.dump(self.scans, f, indent=2)
+    
+    def add_scan(self, barcode_data):
+        """Add a new scan with timestamp"""
+        if not barcode_data.strip():
+            return
+        
+        scan_entry = {
+            "barcode": barcode_data,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.scans.append(scan_entry)
+        self.save_scans()
+        self.update_list()
+        self.barcode_input.value = ""
+        self.page.update()
+    
+    def delete_scan(self, index):
+        """Delete a scan entry"""
+        if 0 <= index < len(self.scans):
+            self.scans.pop(index)
+            self.save_scans()
+            self.update_list()
+    
+    def clear_all(self):
+        """Clear all scans"""
+        self.scans = []
+        self.save_scans()
+        self.update_list()
+    
+    def update_list(self):
+        """Update the display list"""
+        self.scan_list.controls.clear()
+        
+        if not self.scans:
+            self.scan_list.controls.append(
+                ft.Text("No scans yet", size=14, color=ft.Colors.GREY)
+            )
+        else:
+            for i, scan in enumerate(reversed(self.scans)):
+                idx = len(self.scans) - 1 - i
+                self.scan_list.controls.append(
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Column(
+                                    [
+                                        ft.Text(scan["barcode"], size=14, weight=ft.FontWeight.BOLD),
+                                        ft.Text(scan["timestamp"], size=12, color=ft.Colors.GREY)
+                                    ],
+                                    expand=True
+                                ),
+                                ft.IconButton(
+                                    ft.Icons.DELETE,
+                                    icon_color=ft.Colors.RED,
+                                    on_click=lambda e, idx=idx: self.delete_scan(idx)
+                                )
+                            ]
+                        ),
+                        padding=10,
+                        border=ft.border.all(1, ft.Colors.GREY_300),
+                        border_radius=5,
+                        margin=ft.margin.symmetric(vertical=5)
+                    )
+                )
+        
+        self.page.update()
+    
+    def setup_ui(self):
+        """Setup the user interface"""
+        self.page.title = "Barcode Scanner"
+        self.page.vertical_alignment = ft.MainAxisAlignment.START
+        
+        # Input field
+        self.barcode_input = ft.TextField(
+            label="Scan barcode or enter manually",
+            on_submit=lambda e: self.add_scan(self.barcode_input.value),
+            autofocus=True
+        )
+        
+        # Scan button
+        scan_btn = ft.Button(
+            "Add Scan",
+            on_click=lambda e: self.add_scan(self.barcode_input.value)
+        )
+        
+        # Clear button
+        clear_btn = ft.Button(
+            "Clear All",
+            on_click=lambda e: self.clear_all(),
+            style=ft.ButtonStyle(color=ft.Colors.RED)
+        )
+        
+        # Scan list
+        self.scan_list = ft.Column(
+            scroll=ft.ScrollMode.AUTO,
+            expand=True
+        )
+        
+        # Layout
+        self.page.add(
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Barcode Scanner", size=24, weight=ft.FontWeight.BOLD),
+                        ft.Divider(),
+                        ft.Row([self.barcode_input, scan_btn]),
+                        ft.Text(f"Total Scans: {len(self.scans)}", size=12, color=ft.Colors.GREY),
+                        ft.Divider(),
+                        ft.Text("Scan History", size=16, weight=ft.FontWeight.BOLD),
+                        self.scan_list,
+                        ft.Row([clear_btn], alignment=ft.MainAxisAlignment.END)
+                    ],
+                    expand=True,
+                    spacing=10
+                ),
+                padding=15,
+                expand=True
+            )
+        )
+        
+        self.update_list()
 
 def main(page: ft.Page):
-    page.title = "Hello World"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    
-    page.add(
-        ft.Text("Hello World", size=30, weight=ft.FontWeight.BOLD)
-    )
+    BarcodeScanner(page)
 
 if __name__ == "__main__":
     ft.app(target=main)

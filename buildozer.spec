@@ -1,6 +1,6 @@
 [app]
-title = Hello World
-package.name = helloworld
+title = Barcode Scanner
+package.name = barcodescanner
 package.domain = com.example
 
 source.dir = .
