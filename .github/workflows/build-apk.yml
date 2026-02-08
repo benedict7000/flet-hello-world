@@ -28,11 +28,6 @@ jobs:
           python3-pip \
           python3-venv \
           openjdk-17-jdk \
-          android-sdk \
-          android-sdk-build-tools \
-          android-sdk-platform-tools \
-          android-sdk-tools \
-          libncurses5 \
           libffi-dev \
           libssl-dev \
           libjpeg-dev \
@@ -43,18 +38,30 @@ jobs:
           pkg-config \
           cmake \
           autoconf \
-          automake
+          automake \
+          wget \
+          unzip
     
     - name: Set up Android SDK
       run: |
-        mkdir -p ~/Android/Sdk
+        mkdir -p ~/Android/Sdk/cmdline-tools
+        cd ~/Android/Sdk/cmdline-tools
+        
+        # Download Android SDK command-line tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+        unzip -q commandlinetools-linux-11076708_latest.zip
+        mv cmdline-tools latest
+        rm commandlinetools-linux-11076708_latest.zip
+        
         export ANDROID_SDK_ROOT=~/Android/Sdk
         export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
         
         # Accept licenses
         yes | sdkmanager --licenses || true
         
-        # Install NDK
+        # Install required SDK components
+        sdkmanager "platforms;android-31" || true
+        sdkmanager "build-tools;31.0.0" || true
         sdkmanager "ndk;25.1.8937393" || true
     
     - name: Create virtual environment and install Buildozer
