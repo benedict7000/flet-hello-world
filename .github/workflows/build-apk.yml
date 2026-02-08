@@ -25,7 +25,7 @@ jobs:
     
     - name: Build APK with Flet
       run: |
-        flet build apk
+        flet build apk --yes
       timeout-minutes: 90
     
     - name: Upload APK
