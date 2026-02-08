@@ -1,4 +1,4 @@
-name: Build APK with Buildozer
+name: Build APK with Flet Cloud Build
 
 on:
   push:
@@ -18,71 +18,18 @@ jobs:
       with:
         python-version: '3.11'
     
-    - name: Install system dependencies
+    - name: Install Flet
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          git \
-          python3-dev \
-          python3-pip \
-          python3-venv \
-          openjdk-17-jdk \
-          libffi-dev \
-          libssl-dev \
-          libjpeg-dev \
-          zlib1g-dev \
-          libpng-dev \
-          libfreetype6-dev \
-          libtool \
-          pkg-config \
-          cmake \
-          autoconf \
-          automake \
-          wget \
-          unzip
+        pip install flet
     
-    - name: Set up Android SDK
+    - name: Build APK with Flet Cloud Build
       run: |
-        mkdir -p ~/Android/Sdk/cmdline-tools
-        cd ~/Android/Sdk/cmdline-tools
-        
-        # Download Android SDK command-line tools
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-        unzip -q commandlinetools-linux-11076708_latest.zip
-        mv cmdline-tools latest
-        rm commandlinetools-linux-11076708_latest.zip
-        
-        export ANDROID_SDK_ROOT=~/Android/Sdk
-        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-        
-        # Accept licenses
-        yes | sdkmanager --licenses || true
-        
-        # Install required SDK components
-        sdkmanager "platforms;android-31" || true
-        sdkmanager "build-tools;31.0.0" || true
-        sdkmanager "ndk;25.1.8937393" || true
-    
-    - name: Create virtual environment and install Buildozer
-      run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip setuptools wheel
-        pip install buildozer cython
-    
-    - name: Build APK with Buildozer
-      run: |
-        source venv/bin/activate
-        export ANDROID_SDK_ROOT=~/Android/Sdk
-        export ANDROID_HOME=~/Android/Sdk
-        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-        buildozer android debug
+        flet build apk --cloud
     
     - name: Upload APK
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: apk
-        path: bin/*.apk
+        path: build/outputs/apk/*.apk
         if-no-files-found: ignore
