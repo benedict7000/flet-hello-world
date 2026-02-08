@@ -1,4 +1,4 @@
-name: Build APK with Flet Cloud Build
+name: Build APK with Flet
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     
     steps:
     - name: Checkout code
@@ -20,11 +21,12 @@ jobs:
     
     - name: Install Flet
       run: |
-        pip install flet
+        pip install --upgrade flet
     
-    - name: Build APK with Flet Cloud Build
+    - name: Build APK with Flet
       run: |
-        flet build apk --cloud
+        flet build apk
+      timeout-minutes: 90
     
     - name: Upload APK
       if: always()
