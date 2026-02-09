@@ -13,7 +13,7 @@ requirements = python3,flet
 orientation = portrait
 fullscreen = 0
 
-android.permissions = INTERNET
+android.permissions = INTERNET,CAMERA
 android.api = 31
 android.minapi = 21
 android.ndk = 25.1.8937393

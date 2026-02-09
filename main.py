@@ -3,11 +3,19 @@ from datetime import datetime
 import json
 import os
 
+try:
+    from flet_camera import Camera
+    CAMERA_AVAILABLE = True
+except ImportError:
+    CAMERA_AVAILABLE = False
+
 class BarcodeScanner:
     def __init__(self, page: ft.Page):
         self.page = page
         self.scans = []
         self.data_file = "scans.json"
+        self.camera = None
+        self.scanning = False
         self.load_scans()
         self.setup_ui()
     
@@ -25,9 +33,9 @@ class BarcodeScanner:
         with open(self.data_file, 'w') as f:
             json.dump(self.scans, f, indent=2)
     
-    def add_scan(self, barcode_data):
-        """Add a new scan with timestamp"""
-        if not barcode_data.strip():
+    def on_barcode_detected(self, barcode_data):
+        """Handle barcode detection from camera"""
+        if not barcode_data or not barcode_data.strip():
             return
         
         scan_entry = {
@@ -37,7 +45,7 @@ class BarcodeScanner:
         self.scans.append(scan_entry)
         self.save_scans()
         self.update_list()
-        self.barcode_input.value = ""
+        self.update_status(f"Scanned: {barcode_data}")
         self.page.update()
     
     def delete_scan(self, index):
@@ -52,6 +60,12 @@ class BarcodeScanner:
         self.scans = []
         self.save_scans()
         self.update_list()
+        self.update_status("All scans cleared")
+    
+    def update_status(self, message):
+        """Update status message"""
+        self.status_text.value = message
+        self.page.update()
     
     def update_list(self):
         """Update the display list"""
@@ -96,22 +110,42 @@ class BarcodeScanner:
         self.page.title = "Barcode Scanner"
         self.page.vertical_alignment = ft.MainAxisAlignment.START
         
-        # Input field
-        self.barcode_input = ft.TextField(
-            label="Scan barcode or enter manually",
-            on_submit=lambda e: self.add_scan(self.barcode_input.value),
-            autofocus=True
+        # Status text
+        self.status_text = ft.Text(
+            "Ready to scan",
+            size=12,
+            color=ft.Colors.BLUE
         )
         
-        # Scan button
-        scan_btn = ft.Button(
-            "Add Scan",
-            on_click=lambda e: self.add_scan(self.barcode_input.value)
-        )
+        # Camera view (if available)
+        if CAMERA_AVAILABLE:
+            self.camera = Camera(
+                on_barcode_detected=self.on_barcode_detected
+            )
+            camera_container = ft.Container(
+                content=self.camera,
+                height=400,
+                border_radius=10,
+                margin=ft.margin.symmetric(vertical=10)
+            )
+        else:
+            camera_container = ft.Container(
+                content=ft.Text(
+                    "Camera not available\nPlease install flet-camera",
+                    size=14,
+                    color=ft.Colors.RED,
+                    text_align=ft.TextAlign.CENTER
+                ),
+                height=400,
+                bgcolor=ft.Colors.GREY_200,
+                border_radius=10,
+                alignment=ft.alignment.center,
+                margin=ft.margin.symmetric(vertical=10)
+            )
         
         # Clear button
         clear_btn = ft.Button(
-            "Clear All",
+            "Clear All Scans",
             on_click=lambda e: self.clear_all(),
             style=ft.ButtonStyle(color=ft.Colors.RED)
         )
@@ -129,7 +163,8 @@ class BarcodeScanner:
                     [
                         ft.Text("Barcode Scanner", size=24, weight=ft.FontWeight.BOLD),
                         ft.Divider(),
-                        ft.Row([self.barcode_input, scan_btn]),
+                        self.status_text,
+                        camera_container,
                         ft.Text(f"Total Scans: {len(self.scans)}", size=12, color=ft.Colors.GREY),
                         ft.Divider(),
                         ft.Text("Scan History", size=16, weight=ft.FontWeight.BOLD),
