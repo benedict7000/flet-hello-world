@@ -8,30 +8,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Build APK
+      uses: ArtemSBulgakov/buildozer-action@master
       with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install buildozer cython
-        pip install -r requirements.txt
-    
-    - name: Build APK with Buildozer
-      run: |
-        buildozer android release
-      timeout-minutes: 90
+        command: buildozer android release
+        workdir: ./
+        buildozer_version: master
     
     - name: Find APK
-      run: find . -name "*.apk" -type f
+      run: find . -name "*.apk" -type f || echo "No APK found"
     
     - name: Upload APK
       if: always()
@@ -41,4 +32,4 @@ jobs:
         path: |
           bin/*.apk
           build/**/*.apk
-        if-no-files-found: ignore
+        if-no-files-found: warn
