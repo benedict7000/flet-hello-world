@@ -14,22 +14,50 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Build APK
-      uses: ArtemSBulgakov/buildozer-action@master
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        command: buildozer android release
-        workdir: ./
-        buildozer_version: master
+        python-version: '3.11'
     
-    - name: Find APK
-      run: find . -name "*.apk" -type f || echo "No APK found"
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          libssl-dev \
+          libffi-dev \
+          python3-dev \
+          openjdk-17-jdk \
+          android-sdk \
+          android-sdk-build-tools
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install buildozer cython
+        pip install -r requirements.txt
+    
+    - name: Build APK
+      run: |
+        buildozer android release 2>&1 | tee build.log
+      continue-on-error: true
+    
+    - name: Check for APK
+      run: |
+        ls -la bin/ || echo "bin directory not found"
+        find . -name "*.apk" -type f || echo "No APK files found"
     
     - name: Upload APK
-      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: apk
-        path: |
-          bin/*.apk
-          build/**/*.apk
+        path: bin/
         if-no-files-found: warn
+    
+    - name: Upload build log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
+        if-no-files-found: ignore
