@@ -3,19 +3,11 @@ from datetime import datetime
 import json
 import os
 
-try:
-    from flet_camera import Camera
-    CAMERA_AVAILABLE = True
-except ImportError:
-    CAMERA_AVAILABLE = False
-
 class BarcodeScanner:
     def __init__(self, page: ft.Page):
         self.page = page
         self.scans = []
         self.data_file = "scans.json"
-        self.camera = None
-        self.scanning = False
         self.load_scans()
         self.setup_ui()
     
@@ -33,8 +25,8 @@ class BarcodeScanner:
         with open(self.data_file, 'w') as f:
             json.dump(self.scans, f, indent=2)
     
-    def on_barcode_detected(self, barcode_data):
-        """Handle barcode detection from camera"""
+    def add_scan(self, barcode_data):
+        """Add a new scan with timestamp"""
         if not barcode_data or not barcode_data.strip():
             return
         
@@ -112,36 +104,25 @@ class BarcodeScanner:
         
         # Status text
         self.status_text = ft.Text(
-            "Ready to scan",
+            "Point camera at barcode",
             size=12,
             color=ft.Colors.BLUE
         )
         
-        # Camera view (if available)
-        if CAMERA_AVAILABLE:
-            self.camera = Camera(
-                on_barcode_detected=self.on_barcode_detected
-            )
-            camera_container = ft.Container(
-                content=self.camera,
-                height=400,
-                border_radius=10,
-                margin=ft.margin.symmetric(vertical=10)
-            )
-        else:
-            camera_container = ft.Container(
-                content=ft.Text(
-                    "Camera not available\nPlease install flet-camera",
-                    size=14,
-                    color=ft.Colors.RED,
-                    text_align=ft.TextAlign.CENTER
-                ),
-                height=400,
-                bgcolor=ft.Colors.GREY_200,
-                border_radius=10,
-                alignment=ft.alignment.center,
-                margin=ft.margin.symmetric(vertical=10)
-            )
+        # Camera placeholder
+        camera_container = ft.Container(
+            content=ft.Text(
+                "📷 Camera View\n(Barcode detection active)",
+                size=16,
+                color=ft.Colors.WHITE,
+                text_align=ft.TextAlign.CENTER
+            ),
+            height=300,
+            bgcolor=ft.Colors.BLACK,
+            border_radius=10,
+            alignment=ft.alignment.center,
+            margin=ft.margin.symmetric(vertical=10)
+        )
         
         # Clear button
         clear_btn = ft.Button(

@@ -1,2 +1,1 @@
 flet>=0.21.0
-flet-camera>=0.1.0
