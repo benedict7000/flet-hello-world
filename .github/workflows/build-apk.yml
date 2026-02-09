@@ -1,4 +1,4 @@
-name: Build APK with Flet
+name: Build APK with KivyMD
 
 on:
   push:
@@ -19,13 +19,15 @@ jobs:
       with:
         python-version: '3.11'
     
-    - name: Install Flet
+    - name: Install dependencies
       run: |
-        pip install --upgrade flet
+        pip install --upgrade pip
+        pip install buildozer cython
+        pip install -r requirements.txt
     
-    - name: Build APK with Flet
+    - name: Build APK with Buildozer
       run: |
-        flet build apk --yes
+        buildozer android release
       timeout-minutes: 90
     
     - name: Find APK
@@ -37,7 +39,6 @@ jobs:
       with:
         name: apk
         path: |
-          build/outputs/apk/*.apk
+          bin/*.apk
           build/**/*.apk
-          dist/*.apk
         if-no-files-found: ignore

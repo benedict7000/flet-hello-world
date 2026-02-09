@@ -1,6 +1,6 @@
 [app]
-title = Barcode Scanner
-package.name = barcodescanner
+title = Branch Manager
+package.name = branchmanager
 package.domain = com.example
 
 source.dir = .
@@ -8,12 +8,12 @@ source.include_exts = py,png,jpg,kv,atlas
 
 version = 1.0.0
 
-requirements = python3,flet
+requirements = python3,kivy,kivymd,requests
 
 orientation = portrait
 fullscreen = 0
 
-android.permissions = INTERNET,CAMERA
+android.permissions = INTERNET
 android.api = 31
 android.minapi = 21
 android.ndk = 25.1.8937393

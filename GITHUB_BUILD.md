@@ -1,6 +1,6 @@
 # Building APK with GitHub Actions
 
-This project is set up to automatically build your Flet app APK using GitHub Actions.
+This project is set up to automatically build your KivyMD app APK using GitHub Actions.
 
 ## Setup Instructions
 
@@ -8,7 +8,7 @@ This project is set up to automatically build your Flet app APK using GitHub Act
 
 2. **Create a new repository**:
    - Go to https://github.com/new
-   - Name it `flet-hello-world`
+   - Name it `kivymd-branch-manager`
    - Click "Create repository"
 
 3. **Push your code to GitHub**:
@@ -17,7 +17,7 @@ This project is set up to automatically build your Flet app APK using GitHub Act
    git add .
    git commit -m "Initial commit"
    git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/flet-hello-world.git
+   git remote add origin https://github.com/YOUR_USERNAME/kivymd-branch-manager.git
    git push -u origin main
    ```
    (Replace YOUR_USERNAME with your GitHub username)
@@ -31,7 +31,7 @@ This project is set up to automatically build your Flet app APK using GitHub Act
 ## What happens
 
 - GitHub automatically builds your APK when you push code
-- The build takes 20-30 minutes
+- The build takes 30-45 minutes (KivyMD builds take longer than Flet)
 - Your APK is saved as an artifact you can download
 - No local Android SDK/NDK needed!
 
